@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Operasional Garuda Indonesia 2016–2020 | Aidah Nur Fitriani</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; color: #222; min-height: 100vh; }
+
+    .header {
+      background: #0a2e5a;
+      color: #fff;
+      padding: 22px 32px 18px;
+      display: flex; align-items: center; gap: 18px;
+      border-bottom: 4px solid #00b0f0;
+    }
+    .header-nama {
+      flex-shrink: 0;
+    }
+    .header-nama p:first-child { font-size: 14px; font-weight: 700; color: #7ce8ff; }
+    .header-nama p:last-child { font-size: 12px; opacity: 0.6; margin-top: 2px; }
+
+    .header-divider {
+      width: 1.5px; height: 44px; background: rgba(255,255,255,0.2); flex-shrink: 0;
+    }
+
+    .header-text { flex: 1; }
+    .header-text p:first-child { font-size: 11px; letter-spacing: 1px; opacity: 0.7; text-transform: uppercase; margin-bottom: 2px; }
+    .header-text h1 { font-size: 19px; font-weight: 700; }
+    .header-text p:last-child { font-size: 12px; opacity: 0.6; margin-top: 3px; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 20px 40px; }
+
+    .sec-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+      text-transform: uppercase; color: #0a2e5a;
+      border-left: 3px solid #00b0f0; padding-left: 10px; margin-bottom: 12px;
+    }
+
+    .yr-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .yr-btn {
+      padding: 7px 18px; font-size: 13px; font-weight: 600;
+      border-radius: 8px; border: 1.5px solid #c5ccd8;
+      cursor: pointer; background: #fff; color: #555; transition: all 0.15s;
+    }
+    .yr-btn:hover { border-color: #0a2e5a; color: #0a2e5a; }
+    .yr-btn.sel { background: #0a2e5a; color: #fff; border-color: #0a2e5a; }
+
+    .ind-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+    .btn-ind {
+      padding: 6px 14px; font-size: 12px; font-weight: 600;
+      border-radius: 20px; border: 2px solid;
+      cursor: pointer; transition: all 0.15s; background: transparent;
+    }
+    .btn-ind:hover { opacity: 0.85; }
+
+    .kartu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px; margin-bottom: 22px;
+    }
+    .kartu {
+      background: #fff; border-radius: 10px; border: 1.5px solid #e8edf4;
+      padding: 13px 14px; text-align: center;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .kartu:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+    .kartu-label { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px; }
+    .kartu-val { font-size: 22px; font-weight: 700; line-height: 1.1; }
+    .kartu-unit { font-size: 10px; color: #888; margin-top: 3px; }
+    .kartu-sub { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+    .chart-wrap {
+      background: #fff; border-radius: 12px;
+      border: 1.5px solid #e8edf4; padding: 20px; margin-bottom: 18px;
+    }
+    .legenda { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; }
+    .chart-canvas-wrap { position: relative; width: 100%; height: 340px; }
+    .chart-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 8px; }
+
+    .insight-box {
+      background: #fff7f5; border-left: 4px solid #D85A30;
+      border-radius: 0 10px 10px 0; padding: 14px 16px; margin-bottom: 22px;
+    }
+    .insight-box p { font-size: 13px; line-height: 1.7; color: #333; }
+
+    .tabel-wrap {
+      background: #fff; border-radius: 12px;
+      border: 1.5px solid #e8edf4; overflow: hidden;
+    }
+    .tabel-header { background: #0a2e5a; color: #fff; padding: 11px 16px; font-size: 13px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #f0f4f9; padding: 9px 12px; text-align: center;
+      font-weight: 700; font-size: 12px; color: #0a2e5a; border-bottom: 2px solid #d0d8e8;
+    }
+    th:first-child { text-align: left; }
+    td { padding: 9px 12px; border-bottom: 1px solid #eef1f7; text-align: center; }
+    td:first-child { text-align: left; font-weight: 600; color: #333; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: #fafbfd; }
+    .merah { color: #c0392b; font-weight: 700; }
+
+    .footer {
+      background: #0a2e5a; color: rgba(255,255,255,0.55);
+      text-align: center; padding: 16px; font-size: 11px; line-height: 1.8; margin-top: 10px;
+    }
+    .footer strong { color: #fff; }
+    .footer a { color: #7ce8ff; text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .header { padding: 14px 16px; flex-wrap: wrap; }
+      .container { padding: 16px 12px 30px; }
+      .chart-canvas-wrap { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-nama">
+    <p>Aidah Nur Fitriani</p>
+    <p>NIM: 058424705</p>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-text">
+    <p>PT Garuda Indonesia (Persero) Tbk — Garuda Indonesia Group</p>
+    <h1>Dashboard Operasional Interaktif 2016–2020</h1>
+    <p>Sumber: garuda-indonesia.com &nbsp;|&nbsp; Data Historis Operasional</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="sec-title" style="margin-top:4px;">Filter Tahun</div>
+  <div class="yr-row">
+    <button class="yr-btn sel" onclick="setYear('all',this)">Semua Tahun</button>
+    <button class="yr-btn" onclick="setYear('2016',this)">2016</button>
+    <button class="yr-btn" onclick="setYear('2017',this)">2017</button>
+    <button class="yr-btn" onclick="setYear('2018',this)">2018</button>
+    <button class="yr-btn" onclick="setYear('2019',this)">2019</button>
+    <button class="yr-btn" onclick="setYear('2020',this)">2020</button>
+  </div>
+
+  <div class="sec-title">Pilih Indikator &nbsp;<span style="font-weight:400;font-size:10px;color:#888;">(klik untuk aktif / nonaktif)</span></div>
+  <div class="ind-row">
+    <button class="btn-ind active" data-key="armada" style="border-color:#185FA5;" onclick="toggleSeries('armada',this)">Jumlah Armada</button>
+    <button class="btn-ind active" data-key="otp"    style="border-color:#0F6E56;" onclick="toggleSeries('otp',this)">OTP (%)</button>
+    <button class="btn-ind active" data-key="pnpx"   style="border-color:#D85A30;" onclick="toggleSeries('pnpx',this)">Jumlah Penumpang</button>
+    <button class="btn-ind active" data-key="slf"    style="border-color:#BA7517;" onclick="toggleSeries('slf',this)">Keterisian (%)</button>
+    <button class="btn-ind active" data-key="frek"   style="border-color:#534AB7;" onclick="toggleSeries('frek',this)">Frekuensi</button>
+    <button class="btn-ind active" data-key="bb"     style="border-color:#993556;" onclick="toggleSeries('bb',this)">Bahan Bakar</button>
+  </div>
+
+  <div class="sec-title">Ringkasan Data</div>
+  <div class="kartu-grid" id="kartuArea"></div>
+
+  <div class="chart-wrap">
+    <div class="legenda" id="legenda"></div>
+    <div class="chart-canvas-wrap">
+      <canvas id="gc" role="img" aria-label="Grafik interaktif 6 indikator operasional Garuda Indonesia Group 2016-2020"></canvas>
+    </div>
+    <p class="chart-note">Arahkan kursor ke grafik untuk melihat nilai detail tiap tahun</p>
+  </div>
+
+  <div class="insight-box">
+    <p id="insightText"></p>
+  </div>
+
+  <div class="sec-title">Tabel Data Lengkap</div>
+  <div class="tabel-wrap">
+    <div class="tabel-header">Data Historikal Operasional — Garuda Indonesia Group </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:38%">Indikator</th>
+          <th>2016</th><th>2017</th><th>2018</th><th>2019</th><th>2020</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Jumlah Armada (unit)</td>
+          <td>196</td><td>202</td><td>203</td><td>210</td><td>210</td>
+        </tr>
+        <tr>
+          <td>OTP / Ketepatan Waktu (%)</td>
+          <td>89,51</td><td>86,40</td><td>87,80</td><td>91,20</td><td><strong>93,80</strong></td>
+        </tr>
+        <tr>
+          <td>Jumlah Penumpang (juta)</td>
+          <td>34,999</td><td>36,238</td><td>38,444</td><td>31,894</td>
+          <td class="merah">10,808</td>
+        </tr>
+        <tr>
+          <td>Tingkat Keterisian / SLF (%)</td>
+          <td>73,63</td><td>74,65</td><td>75,26</td><td>74,28</td>
+          <td class="merah">45,17</td>
+        </tr>
+        <tr>
+          <td>Frekuensi Penerbangan (ribu)</td>
+          <td>274,696</td><td>281,135</td><td>290,113</td><td>233,306</td>
+          <td class="merah">130,362</td>
+        </tr>
+        <tr>
+          <td>Bahan Bakar / Fuel Burn (M liter)</td>
+          <td>2,057</td><td>2,148</td><td>2,176</td><td>1,871</td>
+          <td class="merah">0,865</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>Aidah Nur Fitriani &nbsp;|&nbsp; NIM: 058424705</strong><br>
+  Data: <a href="https://www.garuda-indonesia.com/id/id/investor-relations/company-data/historical-operating-data/index" target="_blank">garuda-indonesia.com — Data Historis Operasional</a><br>
+</div>
+
+<script>
+const RAW = {
+  labels: ['2016','2017','2018','2019','2020'],
+  armada: [196, 202, 203, 210, 210],
+  otp:    [89.51, 86.40, 87.80, 91.20, 93.80],
+  pnpx:   [34.999, 36.238, 38.444, 31.894, 10.808],
+  slf:    [73.63, 74.65, 75.26, 74.28, 45.17],
+  frek:   [274.696, 281.135, 290.113, 233.306, 130.362],
+  bb:     [2.057, 2.148, 2.176, 1.871, 0.865]
+};
+
+const META = {
+  armada: { label:'Jumlah Armada',  unit:'unit',         color:'#185FA5', type:'bar',  axis:'yA', fmt: v => v + ' unit' },
+  otp:    { label:'OTP',            unit:'%',            color:'#0F6E56', type:'line', axis:'yP', fmt: v => v.toFixed(2) + '%' },
+  pnpx:   { label:'Penumpang',      unit:'juta orang',   color:'#D85A30', type:'bar',  axis:'yN', fmt: v => v.toFixed(3) + ' juta' },
+  slf:    { label:'Keterisian',     unit:'%',            color:'#BA7517', type:'line', axis:'yP', fmt: v => v.toFixed(2) + '%' },
+  frek:   { label:'Frekuensi',      unit:'ribu pnrb',    color:'#534AB7', type:'line', axis:'yF', fmt: v => v.toFixed(1) + ' rb' },
+  bb:     { label:'Bahan Bakar',    unit:'miliar liter', color:'#993556', type:'line', axis:'yB', fmt: v => v.toFixed(3) + ' M L' }
+};
+
+const INSIGHTS = {
+  all:   '<strong>Tren 2016–2020:</strong> Garuda tumbuh konsisten hingga puncak di 2018 (38,4 juta penumpang, 290.113 penerbangan). Sejak 2019 kapasitas mulai disesuaikan. Lalu <strong>pandemi COVID-19 tahun 2020</strong> memukul seluruh indikator. Penumpang anjlok 72%, keterisian ke 45,17%, frekuensi terpangkas setengahnya. Satu-satunya yang membaik: OTP 93,80% karena lalu lintas udara sangat sepi.',
+  '2016':'<strong>2016:</strong> Armada 196 unit, melayani 34,99 juta penumpang dengan 274.696 penerbangan, keterisian 73,63%, OTP 89,51%, konsumsi bahan bakar 2,057 miliar liter. Fondasi ekspansi berkelanjutan Garuda sedang dibangun.',
+  '2017':'<strong>2017:</strong> Penumpang naik ke 36,24 juta (+3,5%), frekuensi meningkat ke 281.135 penerbangan. OTP turun ke titik terendah 86,40% — kemungkinan akibat padatnya operasional. Armada bertambah jadi 202 unit.',
+  '2018':'<strong>2018 — Puncak Performa!</strong> Seluruh indikator volume tertinggi: penumpang 38,44 juta, frekuensi 290.113, keterisian terbaik 75,26%, bahan bakar 2,176 miliar liter. OTP membaik ke 87,80%. Ini adalah tahun terbaik operasional Garuda dalam periode ini.',
+  '2019':'<strong>2019:</strong> Efisiensi jaringan rute dilakukan. Penumpang turun ke 31,89 juta (-17%), frekuensi dipangkas ke 233.306. Kualitas layanan membaik: OTP naik ke 91,20%, armada 210 unit (tertinggi).',
+  '2020':'<strong>2020 — Pandemi COVID-19:</strong> Semua indikator kolaps. Penumpang hanya 10,81 juta (-66% dari 2019), keterisian ke 45,17%, frekuensi tersisa 130.362, bahan bakar turun ke 0,865 miliar liter. OTP justru tertinggi 93,80% karena lalu lintas udara sangat sepi.'
+};
+
+let activeYear = 'all';
+let activeSeries = { armada:true, otp:true, pnpx:true, slf:true, frek:true, bb:true };
+let myChart = null;
+
+function getDisplayData() {
+  if (activeYear === 'all') return { labels: RAW.labels, data: RAW };
+  const idx = RAW.labels.indexOf(activeYear);
+  const d = {};
+  ['armada','otp','pnpx','slf','frek','bb'].forEach(k => d[k] = [RAW[k][idx]]);
+  return { labels: [activeYear], data: d };
+}
+
+function buildDatasets(labels, data) {
+  return Object.keys(META).filter(k => activeSeries[k]).map(k => {
+    const m = META[k];
+    const isLine = m.type === 'line';
+    return {
+      type: m.type,
+      label: m.label,
+      data: data[k],
+      backgroundColor: isLine ? m.color + '18' : m.color + 'CC',
+      borderColor: m.color,
+      borderWidth: isLine ? 2.5 : 1.5,
+      pointRadius: isLine ? 6 : 0,
+      pointHoverRadius: isLine ? 8 : 0,
+      pointBackgroundColor: m.color,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      fill: false,
+      tension: 0.35,
+      yAxisID: m.axis,
+      order: isLine ? 1 : 2
+    };
+  });
+}
+
+function buildScales() {
+  return {
+    x: {
+      grid: { color: 'rgba(0,0,0,0.06)' },
+      ticks: { font: { size: 13, weight: '600' }, color: '#444', autoSkip: false }
+    },
+    yA: {
+      type: 'linear', position: 'left',
+      display: activeSeries.armada,
+      min: 0, max: 260,
+      title: { display: true, text: 'Armada (unit)', font: { size: 11 }, color: '#185FA5' },
+      ticks: { color: '#185FA5', font: { size: 11 }, stepSize: 50 },
+      grid: { color: 'rgba(24,95,165,0.08)' }
+    },
+    yN: {
+      type: 'linear', position: 'left',
+      display: activeSeries.pnpx,
+      min: 0, max: 50,
+      title: { display: true, text: 'Penumpang (juta)', font: { size: 11 }, color: '#D85A30' },
+      ticks: { color: '#D85A30', font: { size: 11 }, stepSize: 10 },
+      grid: { display: false }
+    },
+    yP: {
+      type: 'linear', position: 'right',
+      display: activeSeries.otp || activeSeries.slf,
+      min: 40, max: 100,
+      title: { display: true, text: 'OTP & Keterisian (%)', font: { size: 11 }, color: '#0F6E56' },
+      ticks: { color: '#0F6E56', font: { size: 11 }, stepSize: 10 },
+      grid: { display: false }
+    },
+    yF: { type: 'linear', position: 'right', min: 0, max: 380, display: false },
+    yB: { type: 'linear', position: 'right', min: 0, max: 3,   display: false }
+  };
+}
+
+function updateLegenda() {
+  document.getElementById('legenda').innerHTML = Object.keys(META).filter(k => activeSeries[k]).map(k => {
+    const m = META[k];
+    const isLine = m.type === 'line';
+    return `<span class="leg-item">
+      <span style="width:${isLine?'22px':'12px'};height:${isLine?'0':'12px'};border-radius:2px;
+        background:${isLine?'transparent':m.color};
+        ${isLine?'border-top:3px solid '+m.color+';':''}
+        flex-shrink:0;display:inline-block;"></span>
+      <span>${m.label} (${m.unit})</span>
+    </span>`;
+  }).join('');
+}
+
+function updateKartu() {
+  const { data } = getDisplayData();
+  const keys   = ['armada','pnpx','otp','slf','frek','bb'];
+  const labels = ['Armada','Penumpang','OTP','Keterisian','Frekuensi','Bahan Bakar'];
+  const units  = ['unit','juta org','%','%','ribu pnrb','M liter'];
+  const fmt    = [v=>v.toString(), v=>v.toFixed(2), v=>v.toFixed(2), v=>v.toFixed(2), v=>v.toFixed(1), v=>v.toFixed(3)];
+
+  document.getElementById('kartuArea').innerHTML = keys.map((k, i) => {
+    const m = META[k];
+    let val, sub;
+    if (activeYear === 'all') {
+      const mx = Math.max(...RAW[k]), mn = Math.min(...RAW[k]);
+      val = fmt[i](mx);
+      sub = 'Min: ' + fmt[i](mn);
+    } else {
+      const idx = RAW.labels.indexOf(activeYear);
+      val = fmt[i](RAW[k][idx]);
+      sub = 'Tahun ' + activeYear;
+    }
+    return `<div class="kartu">
+      <div class="kartu-label" style="color:${m.color}">${labels[i]}</div>
+      <div class="kartu-val"   style="color:${m.color}">${val}</div>
+      <div class="kartu-unit">${units[i]}</div>
+      <div class="kartu-sub">${activeYear === 'all' ? 'Maks 2016–2020<br>Min: ' + fmt[i](Math.min(...RAW[k])) : sub}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderChart() {
+  const { labels, data } = getDisplayData();
+  const ctx = document.getElementById('gc').getContext('2d');
+  if (myChart) myChart.destroy();
+  myChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: buildDatasets(labels, data) },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(10,46,90,0.93)',
+          titleColor: '#fff', bodyColor: '#dde8f5',
+          padding: 12, cornerRadius: 8,
+          callbacks: {
+            label: ctx => {
+              const k = Object.keys(META).find(k => META[k].label === ctx.dataset.label);
+              return '  ' + ctx.dataset.label + ': ' + (k ? META[k].fmt(ctx.parsed.y) : ctx.parsed.y);
+            }
+          }
+        }
+      },
+      scales: buildScales(),
+      animation: { duration: 350 }
+    }
+  });
+  updateKartu();
+  updateLegenda();
+  document.getElementById('insightText').innerHTML = INSIGHTS[activeYear];
+}
+
+function setYear(y, btn) {
+  activeYear = y;
+  document.querySelectorAll('.yr-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  renderChart();
+}
+
+function toggleSeries(key, btn) {
+  activeSeries[key] = !activeSeries[key];
+  const m = META[key];
+  if (activeSeries[key]) {
+    btn.style.background = m.color; btn.style.color = '#fff'; btn.style.borderColor = m.color;
+  } else {
+    btn.style.background = 'transparent'; btn.style.color = m.color; btn.style.borderColor = m.color;
+  }
+  renderChart();
+}
+
+document.querySelectorAll('.btn-ind.active').forEach(btn => {
+  const m = META[btn.dataset.key];
+  btn.style.background = m.color; btn.style.color = '#fff';
+});
+
+renderChart();
+</script>
+</body>
+</html>
